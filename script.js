@@ -1,123 +1,94 @@
-$(document).ready(function() {
 
-  var apiRoot = 'http://tasks-app-kamil.herokuapp.com/v1/tasks'; 
-  var datatableRowTemplate = $('[data-datatable-row-template]').children()[0];
-  var tasksContainer = $('[data-tasks-container]');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>CRUD</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,500i,700,700i&subset=latin-ext" rel="stylesheet">
+</head>
+<body>
+<h1 class="kodilla-heading kodilla-heading--main">Kodilla CRUD App</h1>
 
-  // init
-  getAllTasks();
+<main class="crud container">
+  <section class="datatable">
+    <h2>Add a new task</h2>
+    <form
+        class="datatable__row datatable__row--add"
+        method="POST"
+        action="http://localhost:8080/v1/task/createTask"
+        data-task-add-form
+    >
+      <fieldset class="datatable__row-section datatable__row-section--input-section">
+        <label class="datatable__input-label">
+          Task name
+        </label>
+        <input type="text" name="title" placeholder="Insert a task name" required minlength="3">
+      </fieldset>
 
-  function createElement(data) {
-    var element = $(datatableRowTemplate).clone();
+      <fieldset class="datatable__row-section datatable__row-section--input-section">
+        <label class="datatable__input-label">
+          Task content
+        </label>
+        <textarea name="content" placeholder="Insert task content" required minlength="3"></textarea>
+      </fieldset>
 
-    element.attr('data-task-id', data.id);
-    element.find('[data-task-name-section] [data-task-name-paragraph]').text(data.title);
-    element.find('[data-task-name-section] [data-task-name-input]').val(data.title);
+      <fieldset class="datatable__row-section datatable__row-section--button-section">
+        <button type="submit" data-task-add-button class="datatable__button">Add a task</button>
+      </fieldset>
+    </form>
+  </section>
+  <section class="datatable">
+    <h2>Tasks from the API</h2>
+    <div class="datatable__tasks-container" data-tasks-container></div>
+  </section>
+</main>
 
-    element.find('[data-task-content-section] [data-task-content-paragraph]').text(data.content);
-    element.find('[data-task-content-section] [data-task-content-input]').val(data.content);
+<div class="template" data-datatable-row-template>
+  <form class="datatable__row" data-task-id="0">
+    <fieldset class="datatable__row-section datatable__row-section--input-section" data-task-name-section>
+      <label class="datatable__input-label">
+        Task name
+      </label>
+      <input type="text" name="title" placeholder="Insert a new task name" data-task-name-input required minlength="3">
+      <p class="datatable__field-value" data-task-name-paragraph></p>
+    </fieldset>
 
-    return element;
-  }
+    <fieldset class="datatable__row-section datatable__row-section--input-section" data-task-content-section>
+      <label class="datatable__input-label">
+        Task content
+      </label>
+      <textarea name="title" placeholder="Insert new task content" data-task-content-input required minlength="3"></textarea>
+      <p class="datatable__field-value" data-task-content-paragraph></p>
+    </fieldset>
 
-  function handleDatatableRender(data) {
-    tasksContainer.empty();
-    data.forEach(function(task) {
-      createElement(task).appendTo(tasksContainer);
-    });
-  }
+    <div class="datatable__row-section-wrapper">
+      <fieldset class="datatable__row-section datatable__row-section--button-section">
+        <button type="button" data-task-submit-update-button class="datatable__button datatable__button--editing ">Submit update</button>
+        <button type="button" data-task-edit-abort-button class="datatable__button datatable__button--editing">Abort update</button>
+        <button type="button" data-task-edit-button class="datatable__button">Edit</button>
+        <button type="button" data-task-delete-button class="datatable__button">Delete</button>
+      </fieldset>
 
-  function getAllTasks() {
-    var requestUrl = apiRoot;
+      <fieldset class="datatable__row-section datatable__row-section--trello-section">
+        <select class="datatable__select" name="board-name" data-board-name-select>
+          <option disabled selected>--- select an board ---</option>
+        </select>
+        <select class="datatable__select" name="list-name" data-list-name-select>
+          <option disabled selected>--- select a list ---</option>
+        </select>
+        <button type="button" data-trello-card-creation-trigger class="datatable__button datatable__button--card-creation">
+          Create a card
+        </button>
+      </fieldset>
+    </div>
+  </form>
+</div>
 
-    $.ajax({
-      url: requestUrl,
-      method: 'GET',
-        success: handleDatatableRender
-     });
-  }
+<script src="jquery-3.6.0.min.js"></script>
+<script src="script.js"></script>
 
-  function handleTaskUpdateRequest() {
-    var parentEl = $(this).parent().parent();
-    var taskId = parentEl.attr('data-task-id');
-    var taskTitle = parentEl.find('[data-task-name-input]').val();
-    var taskContent = parentEl.find('[data-task-content-input]').val();
-    var requestUrl = apiRoot;
-
-    $.ajax({
-      url: requestUrl,
-      method: "PUT",
-      processData: false,
-      contentType: "application/json; charset=utf-8",
-      dataType: 'json',
-      data: JSON.stringify({
-        id: taskId,
-        title: taskTitle,
-        content: taskContent
-      }),
-      success: function(data) {
-        parentEl.attr('data-task-id', data.id).toggleClass('datatable__row--editing');
-        parentEl.find('[data-task-name-paragraph]').text(taskTitle);
-        parentEl.find('[data-task-content-paragraph]').text(taskContent);
-      }
-    });
-  }
-
-  function handleTaskDeleteRequest() {
-    var parentEl = $(this).parent().parent();
-    var taskId = parentEl.attr('data-task-id');
-    var requestUrl = apiRoot;
-
-    $.ajax({
-      url: requestUrl + '/' + taskId,
-      method: 'DELETE',
-      success: function() {
-        parentEl.slideUp(400, function() { parentEl.remove(); });
-      }
-    })
-  }
-
-  function handleTaskSubmitRequest(event) {
-    event.preventDefault();
-
-    var taskTitle = $(this).find('[name="title"]').val();
-    var taskContent = $(this).find('[name="content"]').val();
-
-    var requestUrl = apiRoot;
-
-    $.ajax({
-      url: requestUrl,
-      method: 'POST',
-      processData: false,
-      contentType: "application/json; charset=utf-8",
-      dataType: 'json',
-      data: JSON.stringify({
-        title: taskTitle,
-        content: taskContent
-      }),
-      complete: function(data) {
-        if(data.status === 200) {
-          getAllTasks();
-        }
-     }
-    });
-  }
-
-  function toggleEditingState() {
-    var parentEl = $(this).parent().parent();
-    parentEl.toggleClass('datatable__row--editing');
-
-    var taskTitle = parentEl.find('[data-task-name-paragraph]').text();
-    var taskContent = parentEl.find('[data-task-content-paragraph]').text();
-
-    parentEl.find('[data-task-name-input]').val(taskTitle);
-    parentEl.find('[data-task-content-input]').val(taskContent);
-  }
-
-  $('[data-task-add-form]').on('submit', handleTaskSubmitRequest);
-
-  tasksContainer.on('click','[data-task-edit-button]', toggleEditingState);
-  tasksContainer.on('click','[data-task-edit-abort-button]', toggleEditingState);
-  tasksContainer.on('click','[data-task-submit-update-button]', handleTaskUpdateRequest);
-  tasksContainer.on('click','[data-task-delete-button]', handleTaskDeleteRequest);
-});
+</body>
+</html>
