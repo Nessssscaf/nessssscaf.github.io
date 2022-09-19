@@ -1,15 +1,14 @@
 $(document).ready(function() {
-  const apiRoot = 'https://tasks-app-kamil.herokuapp.com/v1/tasks';
-  const datatableRowTemplate = $('[data-datatable-row-template]').children()[0];
-  const $tasksContainer = $('[data-tasks-container]');
 
+  var apiRoot = 'https://tasks-app-kamil.herokuapp.com/v1/tasks';
+  var datatableRowTemplate = $('[data-datatable-row-template]').children()[0];
+  var tasksContainer = $('[data-tasks-container]');
 
   // init
-
   getAllTasks();
 
   function createElement(data) {
-    const element = $(datatableRowTemplate).clone();
+    var element = $(datatableRowTemplate).clone();
 
     element.attr('data-task-id', data.id);
     element.find('[data-task-name-section] [data-task-name-paragraph]').text(data.title);
@@ -21,14 +20,14 @@ $(document).ready(function() {
     return element;
   }
 
- function handleDatatableRender(data) {
+  function handleDatatableRender(data) {
     tasksContainer.empty();
     data.forEach(function(task) {
       createElement(task).appendTo(tasksContainer);
     });
   }
 
-   function getAllTasks() {
+  function getAllTasks() {
     var requestUrl = apiRoot;
 
     $.ajax({
@@ -39,7 +38,7 @@ $(document).ready(function() {
   }
 
   function handleTaskUpdateRequest() {
-    var parentEl = $(this).parents('[data-task-id]');
+    var parentEl = $(this).parent().parent();
     var taskId = parentEl.attr('data-task-id');
     var taskTitle = parentEl.find('[data-task-name-input]').val();
     var taskContent = parentEl.find('[data-task-content-input]').val();
@@ -65,7 +64,7 @@ $(document).ready(function() {
   }
 
   function handleTaskDeleteRequest() {
-    var parentEl = $(this).parents('[data-task-id]');
+    var parentEl = $(this).parent().parent();
     var taskId = parentEl.attr('data-task-id');
     var requestUrl = apiRoot;
 
@@ -97,15 +96,15 @@ $(document).ready(function() {
         content: taskContent
       }),
       complete: function(data) {
-        if (data.status === 200) {
+        if(data.status === 200) {
           getAllTasks();
         }
-      }
+     }
     });
   }
 
   function toggleEditingState() {
-    var parentEl = $(this).parents('[data-task-id]');
+    var parentEl = $(this).parent().parent();
     parentEl.toggleClass('datatable__row--editing');
 
     var taskTitle = parentEl.find('[data-task-name-paragraph]').text();
@@ -117,10 +116,8 @@ $(document).ready(function() {
 
   $('[data-task-add-form]').on('submit', handleTaskSubmitRequest);
 
-  $tasksContainer.on('change','[data-board-name-select]', handleBoardNameSelect);
-  $tasksContainer.on('click','[data-trello-card-creation-trigger]', handleCardCreationRequest);
-  $tasksContainer.on('click','[data-task-edit-button]', toggleEditingState);
-  $tasksContainer.on('click','[data-task-edit-abort-button]', toggleEditingState);
-  $tasksContainer.on('click','[data-task-submit-update-button]', handleTaskUpdateRequest);
-  $tasksContainer.on('click','[data-task-delete-button]', handleTaskDeleteRequest);
+  tasksContainer.on('click','[data-task-edit-button]', toggleEditingState);
+  tasksContainer.on('click','[data-task-edit-abort-button]', toggleEditingState);
+  tasksContainer.on('click','[data-task-submit-update-button]', handleTaskUpdateRequest);
+  tasksContainer.on('click','[data-task-delete-button]', handleTaskDeleteRequest);
 });
